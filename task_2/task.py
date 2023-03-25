@@ -14,11 +14,10 @@ def send_email_with_encrypted_file(recipient_email, sender_email, sender_email_p
     data = b'open message'
     # генерация ЭЦП
     signature = rsa.sign(data, privkey, 'SHA-256')
-    encrypted_aes_key = rsa.encrypt(data, pubkey) # Зашифровываем ключ и передаем для расшифровки большого сообщения.
     # Отправляем открытый текст и ЭЦП по email
     msg = MIMEMultipart()                             
     letter = msg.attach(MIMEText(str(data), 'plain'))                 
-    sign = msg.attach(MIMEText(str(encrypted_aes_key), 'plain'))  
+    sign = msg.attach(MIMEText(str(signature), 'plain'))  
     msg['From'] = sender_email                              # Адресат
     msg['To'] = recipient_email                             # Получатель
     smtp_server = smtplib.SMTP('smtp.gmail.com', 587)       # Создаем объект SMTP
