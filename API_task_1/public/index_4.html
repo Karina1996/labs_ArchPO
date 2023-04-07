@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Билеты пассажиров</title>
+<style>
+td {padding:5px;}
+button{margin: 5px;}
+</style>
+</head>
+<body>
+     <h2>Билеты пассажиров</h2>
+    <div>
+        <input type="hidden" id="userId" />
+        <p>Дата:<br/>
+            <input id="userDate" />
+        </p>
+        <p>Место:<br/>
+            <input id="userPlace" />
+        </p>
+         <p>
+            <button id="saveBtn">Сохранить</button>
+            <button id="resetBtn">Сбросить</button>
+        </p>
+    </div>
+    <table>
+        <thead><tr><th>Код пассажира</th><th>Код билета</th><th>Дата</th><th>Место</th><th></th></tr></thead>
+        <tbody>
+        </tbody>
+    </table>
+    <script>
+        async function getUsers() {
+            const response = await fetch("/api/PassTrip", {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const users = await response.json();
+                const rows = document.querySelector("tbody");
+                users.forEach(user => rows.append(row(user)));
+            }
+        }
+        async function getUser(id) {
+            const response = await fetch(`/api/PassTrip/${id}`, {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const user = await response.json();
+                document.getElementById("userId").value = user.id;
+                document.getElementById("userName").value = user.name_;
+            }
+            else {
+                const error = await response.json();
+                console.log(error.message); 
+            }
+        }
+        async function createUser(userName, id) {
+            const response = await fetch("api/PassTrip", {
+                method: "POST",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name_: userName
+                })
+            });
+            if (response.ok === true) {
+                const user = await response.json();
+                document.querySelector("tbody").append(row(user));
+            }
+            else {
+                const error = await response.json();
+                console.log(error.message);
+            }
+        }
+        async function editUser(userId, userName) {
+            const response = await fetch("api/passenger", {
+                method: "PUT",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: userId,
+                    name_: userName
+                })
+            });
+            if (response.ok === true) {
+                const user = await response.json();
+                document.querySelector(`tr[data-rowid='${user.id}']`).replaceWith(row(user));
+            }
+            else {
+                const error = await response.json();
+                console.log(error.message);
+            }
+        }
+        async function deleteUser(id) {
+            const response = await fetch(`/api/PassTrip/${id}`, {
+                method: "DELETE",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const user = await response.json();
+                document.querySelector(`tr[data-rowid='${user.id}']`).remove();
+            }
+            else {
+                const error = await response.json();
+                console.log(error.message);
+            }
+        }
+        function reset() {
+            document.getElementById("userId").value = 
+            document.getElementById("userName").value = "";
+        }
+        function row(user) {
+            const tr = document.createElement("tr");
+            tr.setAttribute("data-rowid", user.Id);
+  
+            const IDTd = document.createElement("td");
+            IDTd.append(user.ID_psg);
+            tr.append(IDTd);
+
+            const ID1Td = document.createElement("td");
+            ID1Td.append(user.trip_no);
+            tr.append(ID1Td);
+
+            const nameTd = document.createElement("td");
+            nameTd.append(user.date_);
+            tr.append(nameTd);
+
+            const name1Td = document.createElement("td");
+            name1Td.append(user.place);
+            tr.append(name1Td);
+  
+            const linksTd = document.createElement("td");
+  
+            const editLink = document.createElement("button"); 
+            editLink.append("Изменить");
+            editLink.addEventListener("click", async() => await getUser(user.id));
+            linksTd.append(editLink);
+  
+            const removeLink = document.createElement("button"); 
+            removeLink.append("Удалить");
+            removeLink.addEventListener("click", async () => await deleteUser(user.id));
+  
+            linksTd.append(removeLink);
+            tr.appendChild(linksTd);
+  
+            return tr;
+        }
+        document.getElementById("resetBtn").addEventListener("click", () =>  reset());
+        document.getElementById("saveBtn").addEventListener("click", async () => {
+             
+            const ID_psg = document.getElementById("userId").value;
+            const date_ = document.getElementById("userDate").value;
+            const place = document.getElementById("userPlace").value;
+            if (ID_psg === "")
+                await createUser(date_, place_);
+            else
+                await editUser(ID_psg, date_, place);
+            reset();
+        });
+  
+        getUsers();
+    </script>
+</body>
+</html>

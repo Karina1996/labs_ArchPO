@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Билеты</title>
+<style>
+td {padding:5px;}
+button{margin: 5px;}
+</style>
+</head>
+<body>
+     <h2>Список билетов</h2>
+    <div>
+        <input type="hidden" id="userId" />
+        <p>Самолет: <input id="userPlane" />
+        </p>
+        <p>Город отправления: <input id="userFrom" />
+        </p>
+        <p>Город прибытия: <input id="userTo" />
+        </p>
+        <p>Дата отправления: <input id="userOut" />
+        </p>
+        <p>Дата прибытия: <input id="userIn" />
+        </p>
+        <p>Авиакомпания: <input id="userComp" type="number" />
+        </p>
+         <p>
+            <button id="saveBtn">Сохранить</button>
+            <button id="resetBtn">Сбросить</button>
+        </p>
+    </div>
+    <table>
+        <thead><tr><th>Код</th><th>Самолет</th><th>Город отправления</th><th>Город прибытия</th>
+            <th>Дата отправления</th><th>Дата прибытия</th><th>Авиакомпания</th><th></th></tr></thead>
+        <tbody>
+        </tbody>
+    </table>
+  
+    <script>
+        async function getUsers() {
+            const response = await fetch("/api/trip", {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const users = await response.json();
+                const rows = document.querySelector("tbody");
+                users.forEach(user => rows.append(row(user)));
+            }
+        }
+        async function getUser(id) {
+            const response = await fetch(`/api/trip/${id}`, {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const user = await response.json();
+                document.getElementById("userId").value = user.id;
+                document.getElementById("userPlane").value = user.plane;
+                document.getElementById("userFrom").value = user.town_from;
+                document.getElementById("userTo").value = user.town_to;
+                document.getElementById("userOut").value = user.time_out;
+                document.getElementById("userIn").value = user.time_in;
+                document.getElementById("userComp").value = user.ID_comp;
+            }
+            else {
+                const error = await response.json();
+                console.log(error.message); 
+            }
+        }
+        async function createUser(plane, town_from, town_to, time_out, time_in, ID_comp) {
+  
+            const response = await fetch("api/trip", {
+                method: "POST",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    plane: userPlane,
+                    town_from: userFrom,
+                    town_to: userTo,
+                    time_out: userOut,
+                    time_in: userIn,
+                    ID_comp: parseInt(userComp, 10)
+                })
+            });
+            if (response.ok === true) {
+                const user = await response.json();
+                document.querySelector("tbody").append(row(user));
+            }
+            else {
+                const error = await response.json();
+                console.log(error.message);
+            }
+        }
+        async function editUser(id, plane, town_from, town_to, time_out, time_in, ID_comp) {
+            const response = await fetch("api/trip", {
+                method: "PUT",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: userId,
+                    plane: userPlane,
+                    town_from: userFrom,
+                    town_to: userTo,
+                    time_out: userOut,
+                    time_in: userIn,
+                    ID_comp: parseInt(userComp, 10)
+                })
+            });
+            if (response.ok === true) {
+                const user = await response.json();
+                document.querySelector(`tr[data-rowid='${user.id}']`).replaceWith(row(user));
+            }
+            else {
+                const error = await response.json();
+                console.log(error.message);
+            }
+        }
+        // Удаление пользователя
+        async function deleteUser(id) {
+            const response = await fetch(`/api/trip/${id}`, {
+                method: "DELETE",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const user = await response.json();
+                document.querySelector(`tr[data-rowid='${user.id}']`).remove();
+            }
+            else {
+                const error = await response.json();
+                console.log(error.message);
+            }
+        }
+  
+        function reset() {
+            document.getElementById("userId").value = 
+            document.getElementById("userPlane").value = 
+            document.getElementById("userFrom").value = 
+            document.getElementById("userTo").value = 
+            document.getElementById("userOut").value = 
+            document.getElementById("userIn").value = 
+            document.getElementById("userComp").value = "";
+        }
+        function row(user) {
+            const tr = document.createElement("tr");
+            tr.setAttribute("data-rowid", user.id);
+  
+            const userTd = document.createElement("td");
+            userTd.append(user.id);
+            tr.append(userTd);
+
+            const nameTd = document.createElement("td");
+            nameTd.append(user.plane);
+            tr.append(nameTd);
+  
+            const town_fromTd = document.createElement("td");
+            town_fromTd.append(user.town_from);
+            tr.append(town_fromTd);
+
+            const town_toTd = document.createElement("td");
+            town_toTd.append(user.town_to);
+            tr.append(town_toTd);
+
+            const time_outTd = document.createElement("td");
+            time_outTd.append(user.time_out);
+            tr.append(time_outTd);
+
+
+            const time_inTd = document.createElement("td");
+            time_inTd.append(user.time_in);
+            tr.append(time_inTd);
+
+
+            const ID_compTd = document.createElement("td");
+            ID_compTd.append(user.ID_comp);
+            tr.append(ID_compTd);
+  
+            const linksTd = document.createElement("td");
+  
+            const editLink = document.createElement("button"); 
+            editLink.append("Изменить");
+            editLink.addEventListener("click", async() => await getUser(user.id));
+            linksTd.append(editLink);
+  
+            const removeLink = document.createElement("button"); 
+            removeLink.append("Удалить");
+            removeLink.addEventListener("click", async () => await deleteUser(user.id));
+  
+            linksTd.append(removeLink);
+            tr.appendChild(linksTd);
+            return tr;
+        }
+        document.getElementById("resetBtn").addEventListener("click", () =>  reset());
+        document.getElementById("saveBtn").addEventListener("click", async () => {
+            const id = document.getElementById("userId").value;
+            const plane = document.getElementById("userPlane").value;
+            const town_from = document.getElementById("town_from").value;
+            const town_to = document.getElementById("town_to").value;
+            const time_out = document.getElementById("time_out").value;
+            const time_in = document.getElementById("time_in").value;
+            const ID_comp = document.getElementById("ID_comp").value;
+            if (id === "")
+                await createUser(plane, town_from, town_to, time_out, time_in, ID_comp);
+            else
+                await editUser(id, plane, town_from, town_to, time_out, time_in, ID_comp);
+            reset();
+        });
+        getUsers();
+    </script>
+</body>
+</html>
