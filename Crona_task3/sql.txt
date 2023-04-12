@@ -1,0 +1,12 @@
+create database Crona_task1
+use Crona_task1
+GO
+create table daily (
+    id int primary key identity(1, 1),
+    date_ date,
+    country nvarchar(50),
+    currency nvarchar(25),
+    amount int,
+    code nvarchar(5),
+    rate float --decimal(2, 3)
+)
